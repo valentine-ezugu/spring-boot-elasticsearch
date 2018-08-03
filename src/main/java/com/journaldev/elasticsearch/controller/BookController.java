@@ -32,8 +32,9 @@ public class BookController {
     @GetMapping()
     public   List<Map<String, Object>> getTourByPriceRange (@RequestParam(value = "minPrice", required = false)
                                                   final Integer minPrice,
-                                                          @RequestParam(value = "maxPrice", required = false)  final Integer maxPrice) {
-        return bookDao.getTourByPriceRange(minPrice,maxPrice);
+                                                          @RequestParam(value = "maxPrice", required = false)  final Integer maxPrice,
+                                                            @RequestParam(value = "city", required = false) final String city) {
+        return bookDao.getTourByPriceRange(minPrice,maxPrice, city);
     }
 
 

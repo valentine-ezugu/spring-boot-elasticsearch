@@ -4,6 +4,7 @@ import com.journaldev.elasticsearch.bean.Book;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.journaldev.elasticsearch.bean.Tour;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -11,20 +12,27 @@ import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.join.query.HasChildQueryBuilder;
+import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Repository
 public class BookDao {
@@ -40,7 +48,7 @@ public class BookDao {
 
     private ObjectMapper objectMapper;
 
-    public BookDao( ObjectMapper objectMapper, RestHighLevelClient restHighLevelClient) {
+    public BookDao(ObjectMapper objectMapper, RestHighLevelClient restHighLevelClient) {
         this.objectMapper = objectMapper;
         this.restHighLevelClient = restHighLevelClient;
     }
@@ -54,9 +62,9 @@ public class BookDao {
                 .source(dataMap);
         try {
             IndexResponse response = restHighLevelClient.index(indexRequest);
-        } catch(ElasticsearchException e) {
+        } catch (ElasticsearchException e) {
             e.getDetailedMessage();
-        } catch (java.io.IOException ex){
+        } catch (java.io.IOException ex) {
             ex.getLocalizedMessage();
         }
 
@@ -64,12 +72,12 @@ public class BookDao {
     }
 
 
-    public Map<String, Object> getTourById(String id){
+    public Map<String, Object> getTourById(String id) {
         GetRequest getRequest = new GetRequest(INDEXTOUR, TYPETOUR, id);
         GetResponse getResponse = null;
         try {
             getResponse = restHighLevelClient.get(getRequest);
-        } catch (java.io.IOException e){
+        } catch (java.io.IOException e) {
             e.printStackTrace();
             e.getLocalizedMessage();
         }
@@ -79,23 +87,32 @@ public class BookDao {
 
     /**
      * Search per price range
+     *
      * @param minPrice
      * @param maxPrice
      * @return
      */
-    public  List<Map<String, Object>> getTourByPriceRange(int minPrice, int maxPrice) {
+    public List<Map<String, Object>> getTourByPriceRange(int minPrice, int maxPrice, String city) {
         List<Map<String, Object>> search = new ArrayList<>();
 
-                QueryBuilder qb = QueryBuilders
-                .rangeQuery("price")
+
+        QueryBuilder range = QueryBuilders.rangeQuery("price")
                 .from(minPrice)
                 .to(maxPrice)
                 .includeLower(true)
                 .includeUpper(true);
+        // departure object is not a nested object so to access its property we just call like in simple java property access
+        QueryBuilder cityQuery = QueryBuilders.matchQuery("departure.city", city);
+
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .filter(range)
+                .filter(cityQuery);
 
         SearchRequest searchRequest = new SearchRequest(INDEXTOUR);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(qb);
+
+        searchSourceBuilder.query(query);
+
         searchRequest.types(TYPETOUR);
         searchRequest.source(searchSourceBuilder);
 
@@ -106,14 +123,19 @@ public class BookDao {
             e.printStackTrace();
             e.getLocalizedMessage();
         }
+
         SearchHits hits = searchResponse.getHits();
         SearchHit[] searchHits = hits.getHits();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             search.add(sourceAsMap);
+             
         }
+
         return search;
     }
+
+
 
 
 
@@ -128,9 +150,9 @@ public class BookDao {
             UpdateResponse updateResponse = restHighLevelClient.update(updateRequest);
             Map<String, Object> sourceAsMap = updateResponse.getGetResult().sourceAsMap();
             return sourceAsMap;
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             e.getMessage();
-        } catch (java.io.IOException e){
+        } catch (java.io.IOException e) {
             e.getLocalizedMessage();
         }
         return error;
@@ -144,35 +166,7 @@ public class BookDao {
             e.getLocalizedMessage();
         }
     }
-//    public  List<Map<String, Object>> ff(int minPrice, int maxPrice) {
-//        List<Map<String, Object>> search = null;
-//
-//        QueryBuilder qb = QueryBuilders
-//                .rangeQuery("price")
-//                .from(minPrice)
-//                .to(maxPrice)
-//                .includeLower(true)
-//                .includeUpper(true);
-//
-//        SearchRequest searchRequest = new SearchRequest(INDEXTOUR);
-//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-//        searchSourceBuilder.query(qb);
-//        searchRequest.types(TYPETOUR);
-//        searchRequest.source(searchSourceBuilder);
-//
-//        SearchResponse searchResponse = null;
-//        try {
-//            searchResponse = restHighLevelClient.search(searchRequest);
-//        } catch (java.io.IOException e) {
-//            e.printStackTrace();
-//            e.getLocalizedMessage();
-//        }
-//        SearchHits hits = searchResponse.getHits();
-//        SearchHit[] searchHits = hits.getHits();
-//        for (SearchHit hit : searchHits) {
-//             search = (List<Map<String, Object>>) hit.getSourceAsMap();
-//        }
-//        return search;
-//    }
+
+
 
 }

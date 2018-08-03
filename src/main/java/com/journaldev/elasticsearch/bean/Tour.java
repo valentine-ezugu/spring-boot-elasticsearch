@@ -24,6 +24,7 @@ import java.util.List;
      private Tour() {
      }
 
+
     public List getExtras() {
         return extras;
     }
@@ -106,18 +107,7 @@ import java.util.List;
 
     public static class TourBuilder {
 
-        private static final  String DEPARTURE = "departure";
-        private static final String ARRIVAL = "arrival";
-        private static final String TOURTYPE = "tourType";
-        private static final String HOTEL = "hotel";
-        private static final String BEACH = "beach";
-        private String country;
-        private String distanceToAirport;
-        private List extras;
-        private List facilities;
-        private String photoUrl;
-        private String regionName;
-        private String title;
+
         private Departure departure;
         private Arrival arrival;
         private TourType tourType;
@@ -141,44 +131,25 @@ import java.util.List;
         public TourBuilder() {
         }
 
-        TourBuilder setCountry(String country){
-            this.country = country;
-            return this;
+        public Departure getDeparture() {
+            return departure;
         }
 
-
-        TourBuilder setDistanceToAirport(String distanceToAirport){
-            this.distanceToAirport = distanceToAirport;
-            return this;
+        public Arrival getArrival() {
+            return arrival;
         }
 
-
-        TourBuilder setExtras(List extras){
-            this.extras = extras;
-            return this;
+        public TourType getTourType() {
+            return tourType;
         }
 
-
-        TourBuilder setFacilities(List facilities){
-            this.facilities = facilities;
-            return this;
+        public void setTourType(TourType tourType) {
+            this.tourType = tourType;
         }
 
-        TourBuilder setPhotoUrl(String photoUrl){
-            this.photoUrl = photoUrl;
-            return this;
+        public Hotel getHotel() {
+            return hotel;
         }
-
-        TourBuilder setRegionName(String regionName){
-            this.regionName = regionName;
-            return this;
-        }
-
-        TourBuilder setTitle(String title){
-            this.title = title;
-            return this;
-        }
-
 
         TourBuilder setDeparture(Departure departure){
             this.departure = departure;
