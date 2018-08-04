@@ -4,7 +4,7 @@ import com.journaldev.elasticsearch.bean.Book;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.journaldev.elasticsearch.bean.Tour;
-import org.apache.lucene.search.join.ScoreMode;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -12,19 +12,17 @@ import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.MultiSearchResponse;
+
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.NestedQueryBuilder;
+
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.join.query.HasChildQueryBuilder;
-import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -32,10 +30,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+
 
 @Repository
-public class BookDao {
+public class TourDao {
 
     private final String INDEX = "bookdata";
     private final String TYPE = "books";
@@ -48,7 +46,7 @@ public class BookDao {
 
     private ObjectMapper objectMapper;
 
-    public BookDao(ObjectMapper objectMapper, RestHighLevelClient restHighLevelClient) {
+    public TourDao(ObjectMapper objectMapper, RestHighLevelClient restHighLevelClient) {
         this.objectMapper = objectMapper;
         this.restHighLevelClient = restHighLevelClient;
     }
@@ -73,6 +71,7 @@ public class BookDao {
 
 
     public Map<String, Object> getTourById(String id) {
+
         GetRequest getRequest = new GetRequest(INDEXTOUR, TYPETOUR, id);
         GetResponse getResponse = null;
         try {
@@ -86,7 +85,7 @@ public class BookDao {
     }
 
     /**
-     * Search per price range
+     * Search per price range and city
      *
      * @param minPrice
      * @param maxPrice
@@ -108,10 +107,11 @@ public class BookDao {
                 .filter(range)
                 .filter(cityQuery);
 
-        SearchRequest searchRequest = new SearchRequest(INDEXTOUR);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-
         searchSourceBuilder.query(query);
+
+        SearchRequest searchRequest = new SearchRequest(INDEXTOUR);
+
 
         searchRequest.types(TYPETOUR);
         searchRequest.source(searchSourceBuilder);
@@ -129,14 +129,11 @@ public class BookDao {
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             search.add(sourceAsMap);
-             
+
         }
 
         return search;
     }
-
-
-
 
 
     public Map<String, Object> updateTourById(String id, Book book) {
@@ -158,7 +155,7 @@ public class BookDao {
         return error;
     }
 
-    public void deleteBookById(String id) {
+    public void removeTour(String id) {
         DeleteRequest deleteRequest = new DeleteRequest(INDEXTOUR, TYPETOUR, id);
         try {
             DeleteResponse deleteResponse = restHighLevelClient.delete(deleteRequest);
@@ -166,7 +163,6 @@ public class BookDao {
             e.getLocalizedMessage();
         }
     }
-
 
 
 }
