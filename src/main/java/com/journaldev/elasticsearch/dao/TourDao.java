@@ -28,6 +28,9 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Repository;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -40,6 +43,11 @@ public class TourDao {
 
     private final String INDEXTOUR = "tourdata";
     private final String TYPETOUR = "tours";
+
+    /**
+     * to be used for date abbrievation later
+     */
+    DateFormat fmt = new SimpleDateFormat("MMM dd, yyyy hh:mm aaa");
 
 
     private RestHighLevelClient restHighLevelClient;
@@ -84,28 +92,35 @@ public class TourDao {
         return sourceAsMap;
     }
 
-    /**
-     * Search per price range and city
-     *
-     * @param minPrice
-     * @param maxPrice
-     * @return
+    /*     private Long id;
+     *     private String countryOrCityOrHotel;
+     *     private Date departureDateFrom;
+     *     private Date departureDateTo;
+     *     private Short nights;
+     *     private Integer people;
+     *     private String departureCity;
      */
-    public List<Map<String, Object>> getTourByPriceRange(int minPrice, int maxPrice, String city) {
+    public List<Map<String, Object>> searchDao(LocalDate departureDateFrom, LocalDate departureDateTo,
+                                               String countryOrCityOrHotel, int nights, int people, String departureCity) {
         List<Map<String, Object>> search = new ArrayList<>();
 
+         QueryBuilder range = QueryBuilders.rangeQuery("date")
+                 .from(departureDateFrom)
+                 .to(departureDateTo)
+                .includeLower(false)
+                .includeUpper(false);
 
-        QueryBuilder range = QueryBuilders.rangeQuery("price")
-                .from(minPrice)
-                .to(maxPrice)
-                .includeLower(true)
-                .includeUpper(true);
-        // departure object is not a nested object so to access its property we just call like in simple java property access
-        QueryBuilder cityQuery = QueryBuilders.matchQuery("departure.city", city);
+        QueryBuilder cityQuery = QueryBuilders.matchQuery("departure.city", departureCity);
+        QueryBuilder nightsQuery = QueryBuilders.matchQuery("nights", nights);
+        QueryBuilder peopleQuery = QueryBuilders.matchQuery("people", people);
+        QueryBuilder destinationHotel = QueryBuilders.matchQuery("hotel.title", countryOrCityOrHotel);
 
-        QueryBuilder query = QueryBuilders.boolQuery()
+         QueryBuilder query = QueryBuilders.boolQuery()
                 .filter(range)
-                .filter(cityQuery);
+                .filter(cityQuery)
+                .filter(destinationHotel) // should because user can omit this according to yubi site
+                .filter(nightsQuery)
+                .filter(peopleQuery);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(query);
@@ -135,6 +150,15 @@ public class TourDao {
         return search;
     }
 
+    /**
+     * TODO implement filter for yubi
+     */
+    public List<Map<String, Object>> filterDao(LocalDate departureDateFrom, LocalDate departureDateTo,
+                                               String countryOrCityOrHotel, int nights, int people, String departureCity) {
+        List<Map<String, Object>> search = new ArrayList<>();
+
+        return null;
+    }
 
     public Map<String, Object> updateTourById(String id, Book book) {
         UpdateRequest updateRequest = new UpdateRequest(INDEXTOUR, TYPETOUR, id)
