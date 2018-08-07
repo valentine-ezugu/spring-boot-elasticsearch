@@ -21,8 +21,12 @@ public class TourController {
     }
 
     @PostMapping
-    public Tour insertTour(@RequestBody Tour tour) throws Exception {
-        return tourDao.insertTour(tour);
+    public List<Tour> insertTour(@RequestBody List<Tour> tours) throws Exception {
+
+        for(Tour tour :  tours){
+              tourDao.insertTour(tour);
+        }
+        return tours;
     }
 
     @GetMapping("/{id}")
@@ -31,13 +35,13 @@ public class TourController {
     }
 
 
-     //127.0.0.1:8080/tours?&minPrice=1300&maxPrice=5000
+    //127.0.0.1:9200/tourdata/tours/_search?size=7000&pretty=true
     @GetMapping()
-    public   List<Map<String, Object>> search(@RequestParam(value = "from", required = false)
-                                              @DateTimeFormat(pattern = "yyyy-MM-dd")final java.time.LocalDate departureDateFrom,
+    public   List<Tour>  search(@RequestParam(value = "from", required = false)
+                                              @DateTimeFormat(pattern = "MMM d, yyyy hh:mm:ss a")final java.time.LocalDateTime departureDateFrom,
                                               @RequestParam(value = "to", required = false)
 
-                                              @DateTimeFormat(pattern = "yyyy-MM-dd")final java.time.LocalDate departureDateTo,
+                                              @DateTimeFormat(pattern = "MMM d, yyyy hh:mm:ss a")final java.time.LocalDateTime departureDateTo,
                                               @RequestParam(value = "hotelName", required = false) final String hotelName,
 
                                               @RequestParam(value = "nights", required = false)  final  int nights,

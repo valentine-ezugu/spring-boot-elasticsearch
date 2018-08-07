@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -47,7 +48,7 @@ public class TourDao {
     /**
      * to be used for date abbrievation later
      */
-    DateFormat fmt = new SimpleDateFormat("MMM dd, yyyy hh:mm aaa");
+    DateFormat fmt = new SimpleDateFormat("MMM d, yyyy hh:mm:ss a");
 
 
     private RestHighLevelClient restHighLevelClient;
@@ -68,6 +69,7 @@ public class TourDao {
                 .source(dataMap);
         try {
             IndexResponse response = restHighLevelClient.index(indexRequest);
+            System.out.println(response);
         } catch (ElasticsearchException e) {
             e.getDetailedMessage();
         } catch (java.io.IOException ex) {
@@ -100,15 +102,16 @@ public class TourDao {
      *     private Integer people;
      *     private String departureCity;
      */
-    public List<Map<String, Object>> searchDao(LocalDate departureDateFrom, LocalDate departureDateTo,
+    public  List<Tour> searchDao(LocalDateTime departureDateFrom, LocalDateTime departureDateTo,
                                                String countryOrCityOrHotel, int nights, int people, String departureCity) {
-        List<Map<String, Object>> search = new ArrayList<>();
+        List<Tour> search = new ArrayList<>();
 
-         QueryBuilder range = QueryBuilders.rangeQuery("date")
-                 .from(departureDateFrom)
-                 .to(departureDateTo)
-                .includeLower(false)
-                .includeUpper(false);
+         QueryBuilder range = QueryBuilders.rangeQuery("departure.date")
+                 .gte(departureDateFrom.toLocalDate())
+                 .lte(departureDateTo.toLocalDate())
+//                 .format("MMM d, yyyy hh:mm:ss a").
+//                         includeLower(true)
+                 .includeUpper(true);
 
         QueryBuilder cityQuery = QueryBuilders.matchQuery("departure.city", departureCity);
         QueryBuilder nightsQuery = QueryBuilders.matchQuery("nights", nights);
@@ -116,7 +119,7 @@ public class TourDao {
         QueryBuilder destinationHotel = QueryBuilders.matchQuery("hotel.title", countryOrCityOrHotel);
 
          QueryBuilder query = QueryBuilders.boolQuery()
-                .filter(range)
+         .filter(range)
                 .filter(cityQuery)
                 .filter(destinationHotel) // should because user can omit this according to yubi site
                 .filter(nightsQuery)
@@ -143,8 +146,11 @@ public class TourDao {
         SearchHit[] searchHits = hits.getHits();
         for (SearchHit hit : searchHits) {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-            search.add(sourceAsMap);
 
+            final ObjectMapper mapper = new ObjectMapper(); // jackson's objectmapper
+            final Tour tour = mapper.convertValue(sourceAsMap, Tour.class);
+
+                search.add(tour);
         }
 
         return search;
@@ -187,6 +193,5 @@ public class TourDao {
             e.getLocalizedMessage();
         }
     }
-
 
 }
