@@ -1,11 +1,12 @@
 package com.journaldev.elasticsearch.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
  public class Tour {
 
@@ -17,19 +18,21 @@ import java.util.List;
     private String nights;
     private int people;
     private int price;
-    private String typeOfRest;
-    private List extras  ;
+    public String typeOfRest;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> extras  ;
 
 
      private Tour() {
      }
 
 
-    public List getExtras() {
+    public List<String> getExtras() {
         return extras;
     }
 
-    public void setExtras(List extras) {
+    public void setExtras(List<String> extras) {
         this.extras = extras;
     }
 

@@ -1,9 +1,12 @@
 package com.journaldev.elasticsearch.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Arrays;
 import java.util.List;
-
-public class Hotel {
+@JsonIgnoreProperties(ignoreUnknown = true)
+ class Hotel {
 
 
     private String photoUrl;
@@ -23,6 +26,9 @@ public class Hotel {
 
     private String food;
     private Beach beach;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public List<String> extras  ;
+
 
     public String getCountry() {
         return country;
