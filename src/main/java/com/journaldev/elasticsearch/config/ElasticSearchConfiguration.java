@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.annotation.Configuration;
 
+
 @Configuration
 public class ElasticSearchConfiguration extends AbstractFactoryBean<RestHighLevelClient> {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConfiguration.class);
+
     @Value("${spring.data.elasticsearch.cluster-nodes}")
     private String clusterNodes;
     @Value("${spring.data.elasticsearch.cluster-name}")

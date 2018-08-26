@@ -38,9 +38,6 @@ import java.util.*;
 @Repository
 public class TourDao {
 
-    private final String INDEX = "bookdata";
-    private final String TYPE = "books";
-
     private final String INDEXTOUR = "tourdata";
     private final String TYPETOUR = "tours";
 
